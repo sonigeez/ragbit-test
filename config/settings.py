@@ -22,14 +22,20 @@ class Settings(BaseSettings):
     environment: Literal["development", "staging", "production"] = "development"
     debug: bool = False
 
+    # LLM Provider Settings
+    llm_provider: Literal["openai", "openrouter"] = "openai"
+
     # LLM Settings
-    llm_model_name: str = "gpt-4o-mini"
+    llm_model_name: str = "gpt-4o-mini"  # For OpenRouter: "openrouter/anthropic/claude-3.5-sonnet"
     llm_temperature: float = 0.7
     llm_max_tokens: int = 2000
     use_structured_output: bool = True
 
+    # Embedding Provider Settings
+    embedding_provider: Literal["openai", "openrouter"] = "openai"
+
     # Embedding Settings
-    embedding_model_name: str = "text-embedding-3-small"
+    embedding_model_name: str = "text-embedding-3-small"  # For OpenRouter: "openrouter/..." (if available)
     embedding_dimensions: int = 1536
 
     # Vector Store Settings
@@ -62,8 +68,10 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_access_token_expire_minutes: int = 60 * 24  # 24 hours
 
-    # OpenAI API Key (required)
-    openai_api_key: str = ""
+    # API Keys
+    openai_api_key: str = ""  # Required if using OpenAI provider
+    openrouter_api_key: str = ""  # Required if using OpenRouter provider
+    openrouter_api_base: str = "https://openrouter.ai/api/v1"  # OpenRouter API base URL
 
     # Logging Settings
     log_level: str = "INFO"

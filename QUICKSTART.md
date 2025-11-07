@@ -87,19 +87,47 @@ docker-compose logs -f api
 
 ## ⚙️ Essential Configuration
 
-In your `.env` file, you MUST set:
+In your `.env` file, you can choose between OpenAI or OpenRouter:
+
+### Option 1: OpenRouter (Recommended - Free Models Available!)
 
 ```bash
-# Required
-OPENAI_API_KEY=sk-your-key-here
+# Provider
+LLM_PROVIDER=openrouter
+EMBEDDING_PROVIDER=openai
 
-# Recommended to change
+# API Keys
+OPENROUTER_API_KEY=sk-or-v1-your-key-here  # Get from https://openrouter.ai/keys
+OPENAI_API_KEY=sk-your-openai-key  # For embeddings
+
+# Model (Free tier!)
+LLM_MODEL_NAME=openrouter/meta-llama/llama-3.1-8b-instruct:free
+
+# Security
 JWT_SECRET_KEY=your-secret-key-here
 
 # Optional (defaults work fine for testing)
-VECTOR_STORE_TYPE=in_memory  # Use 'qdrant' for production
-LLM_MODEL_NAME=gpt-4o-mini
+VECTOR_STORE_TYPE=in_memory
 ```
+
+### Option 2: Pure OpenAI (Original)
+
+```bash
+# Provider
+LLM_PROVIDER=openai
+EMBEDDING_PROVIDER=openai
+
+# API Key
+OPENAI_API_KEY=sk-your-key-here
+
+# Model
+LLM_MODEL_NAME=gpt-4o-mini
+
+# Security
+JWT_SECRET_KEY=your-secret-key-here
+```
+
+**💡 Tip**: OpenRouter gives you access to 500+ models including free ones! See [OPENROUTER.md](OPENROUTER.md) for details.
 
 ## 🎯 What's Next?
 

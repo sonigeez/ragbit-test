@@ -1,6 +1,7 @@
 """
 Main chatbot implementation with RAG capabilities for transcript analysis.
 """
+import os
 from typing import AsyncGenerator, Optional
 from collections.abc import Iterable
 
@@ -17,6 +18,59 @@ from src.transcript_chatbot.prompts import (
     TranscriptQuestionPrompt,
 )
 from src.transcript_chatbot.transcript_service import TranscriptServiceFactory
+
+
+def create_llm() -> LiteLLM:
+    """
+    Create an LLM instance based on configuration.
+    Supports both OpenAI and OpenRouter providers.
+
+    Returns:
+        LiteLLM: Configured LLM instance
+
+    Raises:
+        ValueError: If provider is not configured correctly
+    """
+    provider = settings.llm_provider
+    model_name = settings.llm_model_name
+
+    logger.info(f"Creating LLM with provider: {provider}, model: {model_name}")
+
+    if provider == "openrouter":
+        if not settings.openrouter_api_key:
+            raise ValueError("OPENROUTER_API_KEY is required when using OpenRouter provider")
+
+        # Set OpenRouter environment variables for LiteLLM
+        os.environ["OPENROUTER_API_KEY"] = settings.openrouter_api_key
+        os.environ["OPENROUTER_API_BASE"] = settings.openrouter_api_base
+
+        # For OpenRouter, ensure model name has the correct prefix
+        if not model_name.startswith("openrouter/"):
+            logger.warning(
+                f"OpenRouter model '{model_name}' doesn't have 'openrouter/' prefix. "
+                f"Adding it automatically."
+            )
+            model_name = f"openrouter/{model_name}"
+
+        return LiteLLM(
+            model_name=model_name,
+            temperature=settings.llm_temperature,
+            max_tokens=settings.llm_max_tokens,
+        )
+
+    elif provider == "openai":
+        if not settings.openai_api_key:
+            raise ValueError("OPENAI_API_KEY is required when using OpenAI provider")
+
+        return LiteLLM(
+            model_name=model_name,
+            api_key=settings.openai_api_key,
+            temperature=settings.llm_temperature,
+            max_tokens=settings.llm_max_tokens,
+        )
+
+    else:
+        raise ValueError(f"Unsupported LLM provider: {provider}")
 
 
 class TranscriptChatbot:
@@ -41,13 +95,8 @@ class TranscriptChatbot:
         self.user_id = user_id
         self.context = conversation_context or ConversationContext(user_id=user_id)
 
-        # Initialize LLM
-        self.llm = LiteLLM(
-            model_name=settings.llm_model_name,
-            api_key=settings.openai_api_key if settings.openai_api_key else None,
-            temperature=settings.llm_temperature,
-            max_tokens=settings.llm_max_tokens,
-        )
+        # Initialize LLM with configured provider
+        self.llm = create_llm()
 
         # Get transcript service for this user
         self.transcript_service = TranscriptServiceFactory.get_service(user_id)

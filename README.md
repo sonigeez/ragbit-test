@@ -13,6 +13,7 @@ A production-ready chatbot system built with [Ragbits](https://ragbits.deepsense
 - 📊 Structured logging and monitoring
 
 🚀 **Production-Ready**
+- Multiple LLM providers (OpenAI, **OpenRouter** - 500+ models!)
 - Multiple vector store backends (In-Memory, Qdrant, PostgreSQL)
 - Streaming responses for better UX
 - Comprehensive error handling
@@ -106,12 +107,17 @@ python examples/simple_chat_example.py
 Key configuration options in `.env`:
 
 ```bash
-# Required
-OPENAI_API_KEY=your-key-here
+# LLM Provider (choose: openai or openrouter)
+LLM_PROVIDER=openrouter
+EMBEDDING_PROVIDER=openai
 
-# LLM Settings
-LLM_MODEL_NAME=gpt-4o-mini
-LLM_TEMPERATURE=0.7
+# API Keys
+OPENROUTER_API_KEY=your-openrouter-key  # Get from https://openrouter.ai/keys
+OPENAI_API_KEY=your-openai-key  # For embeddings (recommended)
+
+# Model Selection
+LLM_MODEL_NAME=openrouter/meta-llama/llama-3.1-8b-instruct:free
+EMBEDDING_MODEL_NAME=text-embedding-3-small
 
 # Vector Store (choose one)
 VECTOR_STORE_TYPE=in_memory  # or: qdrant, pgvector
@@ -126,6 +132,8 @@ JWT_ACCESS_TOKEN_EXPIRE_MINUTES=1440
 ```
 
 See `.env.example` for all available options.
+
+**🆕 OpenRouter Support**: Access 500+ models (including Claude, Llama, Gemini) through one API! See [OPENROUTER.md](OPENROUTER.md) for details.
 
 ### Vector Store Options
 

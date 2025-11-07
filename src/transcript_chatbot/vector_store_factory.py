@@ -1,6 +1,7 @@
 """
 Factory for creating vector stores based on configuration.
 """
+import os
 from ragbits.core.embeddings import LiteLLMEmbedder
 from ragbits.core.vector_stores.base import VectorStore
 from ragbits.core.vector_stores.in_memory import InMemoryVectorStore
@@ -12,15 +13,48 @@ from src.transcript_chatbot.logger import logger
 def create_embedder() -> LiteLLMEmbedder:
     """
     Create an embedder instance based on configuration.
+    Supports both OpenAI and OpenRouter providers.
 
     Returns:
         LiteLLMEmbedder: Configured embedder instance
+
+    Raises:
+        ValueError: If provider is not configured correctly
     """
-    logger.info(f"Creating embedder with model: {settings.embedding_model_name}")
-    return LiteLLMEmbedder(
-        model_name=settings.embedding_model_name,
-        api_key=settings.openai_api_key if settings.openai_api_key else None
-    )
+    provider = settings.embedding_provider
+    model_name = settings.embedding_model_name
+
+    logger.info(f"Creating embedder with provider: {provider}, model: {model_name}")
+
+    # Configure environment variables based on provider
+    if provider == "openrouter":
+        if not settings.openrouter_api_key:
+            raise ValueError("OPENROUTER_API_KEY is required when using OpenRouter provider")
+
+        # Set OpenRouter environment variables for LiteLLM
+        os.environ["OPENROUTER_API_KEY"] = settings.openrouter_api_key
+        os.environ["OPENROUTER_API_BASE"] = settings.openrouter_api_base
+
+        # For OpenRouter, ensure model name has the correct prefix
+        if not model_name.startswith("openrouter/"):
+            logger.warning(
+                f"OpenRouter model '{model_name}' doesn't have 'openrouter/' prefix. "
+                f"Using as-is, but you may need to add the prefix."
+            )
+
+        return LiteLLMEmbedder(model_name=model_name)
+
+    elif provider == "openai":
+        if not settings.openai_api_key:
+            raise ValueError("OPENAI_API_KEY is required when using OpenAI provider")
+
+        return LiteLLMEmbedder(
+            model_name=model_name,
+            api_key=settings.openai_api_key
+        )
+
+    else:
+        raise ValueError(f"Unsupported embedding provider: {provider}")
 
 
 def create_vector_store() -> VectorStore:
