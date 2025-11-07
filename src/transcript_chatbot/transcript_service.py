@@ -6,7 +6,8 @@ from pathlib import Path
 import json
 
 from ragbits.document_search import DocumentSearch
-from ragbits.document_search.documents.document import DocumentMeta
+from ragbits.document_search.documents.document import DocumentMeta, DocumentType
+from ragbits.document_search.documents.sources import LocalFileSource
 from ragbits.document_search.documents.element import Element
 
 from config.settings import settings
@@ -67,8 +68,14 @@ class TranscriptService:
         )
 
         try:
+            # Save transcript content to a temporary file for ingestion
+            temp_file = Path(settings.upload_dir) / f"{transcript.metadata.transcript_id}.txt"
+            temp_file.write_text(transcript.content, encoding="utf-8")
+
             # Create document metadata with user_id for filtering
             doc_meta = DocumentMeta(
+                document_type=DocumentType.TXT,
+                source=LocalFileSource(path=temp_file),
                 metadata={
                     "user_id": self.user_id,
                     "transcript_id": transcript.metadata.transcript_id,
@@ -84,18 +91,14 @@ class TranscriptService:
                 }
             )
 
-            # Save transcript content to a temporary file for ingestion
-            temp_file = Path(settings.upload_dir) / f"{transcript.metadata.transcript_id}.txt"
-            temp_file.write_text(transcript.content, encoding="utf-8")
-
             # Ingest the transcript
             await self.document_search.ingest(
-                f"file://{temp_file.absolute()}",
-                document_meta=doc_meta,
+                [doc_meta],
             )
 
             # Clean up temp file
-            temp_file.unlink()
+            if temp_file.exists():
+                temp_file.unlink()
 
             logger.info(
                 f"Successfully ingested transcript {transcript.metadata.transcript_id}"
