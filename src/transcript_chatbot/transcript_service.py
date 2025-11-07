@@ -36,7 +36,6 @@ class TranscriptService:
         self.vector_store = create_vector_store()
         self.document_search = DocumentSearch(
             vector_store=self.vector_store,
-            max_chunk_size=settings.chunk_size,
         )
         logger.info(f"Initialized TranscriptService for user: {user_id}")
 
