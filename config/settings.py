@@ -3,8 +3,8 @@ Configuration settings for the Transcript Chatbot application.
 Supports environment-based configuration for production deployment.
 """
 import os
-from typing import Literal, Any
-from pydantic import field_validator
+from typing import Literal, Any, Union
+from pydantic import field_validator, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -61,7 +61,7 @@ class Settings(BaseSettings):
     # API Settings
     api_host: str = "0.0.0.0"
     api_port: int = 8000
-    api_cors_origins: list[str] = ["*"]
+    api_cors_origins: Union[str, list[str]] = "*"
     api_workers: int = 4
 
     # Authentication Settings
@@ -85,16 +85,16 @@ class Settings(BaseSettings):
     # Storage Settings (for transcript uploads)
     upload_dir: str = "data/uploads"
     max_upload_size_mb: int = 10
-    allowed_file_types: list[str] = [".txt", ".pdf", ".docx", ".json"]
+    allowed_file_types: Union[str, list[str]] = ".txt,.pdf,.docx,.json"
 
     # Observability
     enable_tracing: bool = False
     otel_endpoint: str = "http://localhost:4318"
 
-    @field_validator("api_cors_origins", mode="before")
+    @field_validator("api_cors_origins", mode="after")
     @classmethod
-    def parse_cors_origins(cls, v: Any) -> list[str]:
-        """Parse CORS origins from string or list."""
+    def parse_cors_origins(cls, v: Union[str, list[str]]) -> list[str]:
+        """Parse CORS origins from string or list - always returns a list."""
         if isinstance(v, str):
             # Handle comma-separated values
             if "," in v:
@@ -103,10 +103,10 @@ class Settings(BaseSettings):
             return [v.strip()]
         return v
 
-    @field_validator("allowed_file_types", mode="before")
+    @field_validator("allowed_file_types", mode="after")
     @classmethod
-    def parse_file_types(cls, v: Any) -> list[str]:
-        """Parse allowed file types from string or list."""
+    def parse_file_types(cls, v: Union[str, list[str]]) -> list[str]:
+        """Parse allowed file types from string or list - always returns a list."""
         if isinstance(v, str):
             # Handle comma-separated values
             if "," in v:
