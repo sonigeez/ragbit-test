@@ -77,15 +77,22 @@ def create_vector_store() -> VectorStore:
         logger.info(f"Creating Qdrant vector store at {settings.qdrant_url}")
         try:
             from ragbits.core.vector_stores.qdrant import QdrantVectorStore
+            from qdrant_client import AsyncQdrantClient
+
+            # Create Qdrant client
+            client = AsyncQdrantClient(
+                url=settings.qdrant_url,
+                api_key=settings.qdrant_api_key if settings.qdrant_api_key else None,
+            )
 
             return QdrantVectorStore(
-                url=settings.qdrant_url,
-                api_key=settings.qdrant_api_key,
-                collection_name=settings.qdrant_collection_name,
+                client=client,
+                index_name=settings.qdrant_collection_name,
                 embedder=embedder,
             )
-        except ImportError:
-            logger.error("Qdrant support not installed. Install with: pip install ragbits[qdrant]")
+        except ImportError as e:
+            logger.error(f"Qdrant support not installed: {e}")
+            logger.error("Install with: pip install qdrant-client")
             raise
 
     elif settings.vector_store_type == "pgvector":
