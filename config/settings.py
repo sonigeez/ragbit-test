@@ -3,7 +3,8 @@ Configuration settings for the Transcript Chatbot application.
 Supports environment-based configuration for production deployment.
 """
 import os
-from typing import Literal
+from typing import Literal, Any
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -89,6 +90,30 @@ class Settings(BaseSettings):
     # Observability
     enable_tracing: bool = False
     otel_endpoint: str = "http://localhost:4318"
+
+    @field_validator("api_cors_origins", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, v: Any) -> list[str]:
+        """Parse CORS origins from string or list."""
+        if isinstance(v, str):
+            # Handle comma-separated values
+            if "," in v:
+                return [origin.strip() for origin in v.split(",")]
+            # Single value
+            return [v.strip()]
+        return v
+
+    @field_validator("allowed_file_types", mode="before")
+    @classmethod
+    def parse_file_types(cls, v: Any) -> list[str]:
+        """Parse allowed file types from string or list."""
+        if isinstance(v, str):
+            # Handle comma-separated values
+            if "," in v:
+                return [ft.strip() for ft in v.split(",")]
+            # Single value
+            return [v.strip()]
+        return v
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
