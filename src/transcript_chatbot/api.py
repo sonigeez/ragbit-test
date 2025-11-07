@@ -297,8 +297,8 @@ async def get_transcript(
 
 
 # Mount Ragbits Chat API
-chat_interface = TranscriptChatInterface()
-ragbits_api = RagbitsAPI(chat_interface)
+# Note: RagbitsAPI expects a class, not an instance
+ragbits_api = RagbitsAPI(TranscriptChatInterface)
 
 # Mount the chat endpoints under /chat
 app.mount("/chat", ragbits_api.app)
