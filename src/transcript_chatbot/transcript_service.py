@@ -7,7 +7,7 @@ import json
 
 from ragbits.document_search import DocumentSearch
 from ragbits.document_search.documents.document import DocumentMeta, DocumentType
-from ragbits.document_search.documents.sources import LocalFileSource
+from ragbits.core.sources.local import LocalFileSource
 from ragbits.document_search.documents.element import Element
 
 from config.settings import settings
